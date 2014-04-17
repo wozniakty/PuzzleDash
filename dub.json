@@ -1,0 +1,29 @@
+{
+	"name": "sample-dash-game",
+	"description": "A Match-3 Puzzle game written in Dlang using the Dash engine",
+	"copyright": "2014",
+	"license": "MIT",
+	"authors": [ 
+		"Tyler Wozniak"
+	],
+	"dependencies": {
+		"dash": "~master" 
+	},
+	"sourcePaths": [ 
+		"Scripts/",
+		"Config/", 
+		"Materials/",
+		"Objects/",
+		"Prefabs/",
+		"UI/",
+	],
+	"importPaths": [ "Scripts/" ],
+	"targetType": "executable",
+	"targetPath": "Binaries",
+	"lflags-linux" : [ "./libawesomium-1.6.5.so" ],
+	"libs-windows": [
+		"Awesomium",
+		"gdi32", "ole32", "kernel32",
+		"user32", "comctl32", "comdlg32"
+	]
+}

@@ -1,0 +1,9 @@
+---
+Name: FbxFab
+Transform:
+    Scale: !Vector3 1 1 1
+Mesh: fbxtest
+Material: fbxmat
+---
+Name: CameraFab
+Camera: true

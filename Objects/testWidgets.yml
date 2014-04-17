@@ -1,0 +1,39 @@
+---
+Name: Root
+InstanceOf: SupaFab
+Material: rootMat
+Script:
+    ClassName: testobject.RotateThing
+Transform:
+    Position: !Vector3 0 0 -10
+    Scale: !Vector3 1 1 1
+    Rotation: !Vector3 0 0 0
+Children:
+  - Name: Child1
+    InstanceOf: SupaFab
+    Material: child1Mat
+    Script:
+        ClassName: testobject.RotateThing
+    Transform:
+        Position: !Vector3 20 0 0
+        Scale: !Vector3 1 1 1
+        Rotation: !Vector3 0 0 0
+    Children:
+      - Name: Child2
+        InstanceOf: SupaFab
+        Material: child2Mat
+        Script:
+            ClassName: testobject.RotateThing
+        Transform:
+            Position: !Vector3 0 10 0
+            Scale: !Vector3 1 1 1
+            Rotation: !Vector3 0 0 0
+  - Name: Child3
+    Script:
+        ClassName: testobject.RotateThing
+    InstanceOf: SupaFab
+    Material: child3Mat
+    Transform:
+        Position: !Vector3 -10 0 0
+        Scale: !Vector3 1 1 1
+        Rotation: !Vector3 0 0 0
