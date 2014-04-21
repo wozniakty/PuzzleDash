@@ -1,4 +1,4 @@
-module testgame;
+module game;
 import core;
 import graphics.graphics;
 import components.camera, components.userinterface;
@@ -6,9 +6,8 @@ import utility;
 
 import gl3n.linalg;
 
-shared class TestGame : DGame
+shared class Game : DGame
 {
-    UserInterface ui;
     Camera cam;
     
     override void onInitialize()
@@ -26,19 +25,18 @@ shared class TestGame : DGame
         uint w, h;
         w = Config.get!uint( "Display.Width" );
         h = Config.get!uint( "Display.Height" );
-        ui = new shared UserInterface(w, h, Config.get!string( "UserInterface.FilePath" ) );
 
         //scheduleTimedTask( { logInfo( "Executing: ", Time.totalTime ); }, 250.msecs );
     }
 
     override void onUpdate()
     {
-        ui.update();
+        //ui.update();
     }
     
     override void onDraw()
     {
-        ui.draw();
+        //ui.draw();
     }
 
     override void onShutdown()
@@ -48,8 +46,6 @@ shared class TestGame : DGame
             obj.shutdown();
         activeScene.clear();
         activeScene = null;
-
-        ui.shutdown();
     }
 
     override void onSaveState()

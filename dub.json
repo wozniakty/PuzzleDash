@@ -1,5 +1,5 @@
 {
-	"name": "sample-dash-game",
+	"name": "PuzzleDash",
 	"description": "A Match-3 Puzzle game written in Dlang using the Dash engine",
 	"copyright": "2014",
 	"license": "MIT",
