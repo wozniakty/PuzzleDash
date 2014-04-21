@@ -26,6 +26,8 @@ shared class Game : DGame
         w = Config.get!uint( "Display.Width" );
         h = Config.get!uint( "Display.Height" );
 
+        //activeScene.addChild( Prefabs["Ball"].createInstance() );
+
         //scheduleTimedTask( { logInfo( "Executing: ", Time.totalTime ); }, 250.msecs );
     }
 

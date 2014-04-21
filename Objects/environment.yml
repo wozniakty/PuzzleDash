@@ -3,7 +3,7 @@ Name: Background
 Mesh: unitsquare
 Material: background
 Transform:
-    Position: !Vector3 0 0 -50
+    Position: !Vector3 0 0 -149
     Scale: !Vector3 150 85 1
     Rotation: !Vector3 0 0 0
 ---
@@ -11,3 +11,6 @@ Name: DirLight
 Light: !Light-Directional
     Color: !Vector3 1 1 1
     Direction: !Vector3 0 -1 -1
+---
+Name: Ball
+InstanceOf: Ball

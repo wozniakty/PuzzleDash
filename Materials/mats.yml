@@ -3,3 +3,8 @@ Name: background
 Diffuse: fractal
 Normal: flat_n
 Specular: flat_s
+---
+Name: default
+Diffuse: bluePoop
+Normal: flat_n
+Specular: flat_s

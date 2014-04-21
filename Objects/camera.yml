@@ -6,5 +6,5 @@ Transform:
     Rotation: !Vector3 0 0 0
 Camera: 
     FOV: 59
-    Near: 10
+    Near: 1
     Far: 150
