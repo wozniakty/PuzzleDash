@@ -5,3 +5,4 @@ Material: default
 Transform:
     Position: !Vector3 0 0 -20
     Scale: !Vector3 40 40 40
+    Rotation: !Vector3 -90 0 0
