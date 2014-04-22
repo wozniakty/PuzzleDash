@@ -17,12 +17,12 @@ public enum Color
 
 public enum TILE_SIZE = 64;
 
-shared class Grid
+shared final class Grid : GameObject
 {
 private:
 
 	int rows, cols, x, y;
-	Color[] state;
+	Tile[] state;
 	vec2i selection;
 
 public:
@@ -34,30 +34,37 @@ public:
 		this.x = x;
 		this.y = y;
 
-		//state = Color[size];
+		state = new shared Tile[size];
 		selection = shared vec2i( -1, -1 );
 	}
+
 
 	@property const int size() 
 	{ 
 		return rows * cols; 
 	}
 
-	Color opIndex( int n )
+	shared(Tile) opIndex( int n )
 	{
 		if( n < 0 || n > size - 1 )
-			return Color.Empty;
+			return new shared Tile;
 		return state[n];
 	}
 
-	void opIndexAssign( int n )
-	{
-		if( n >= 0 && n < size ) 
-	}
-
-	Color opIndex( int row, int col )
+	shared(Tile) opIndex( int row, int col )
 	{
 		return state[rcToN( row, col )];
+	}
+
+	void opIndexAssign( shared Tile t, int n )
+	{
+		if( n >= 0 && n > size )
+			state[n] = t;
+	}
+
+	void opIndexAssign( shared Tile t, int row, int col )
+	{
+		this[ rcToN( row, col ) ] = t;
 	}
 
 	int rcToN( int row, int col )
@@ -94,13 +101,13 @@ public:
 			Color invalid1 = Color.Empty;
 			Color invalid2 = Color.Empty;
 
-			if( i % cols > 1 && this[ i - 1 ] == this[ i - 2 ] )
+			if( i % cols > 1 && this[ i - 1 ].color == this[ i - 2 ].color )
 			{
-				invalid1 = this[ i - 1 ];
+				invalid1 = this[ i - 1 ].color;
 			}
-			if( i / cols > 1 && this[ i - cols ] == this[ i - 2*cols ] )
+			if( i / cols > 1 && this[ i - cols ].color == this[ i - 2*cols ].color )
 			{
-				invalid2 = this[ i - cols ];
+				invalid2 = this[ i - cols ].color;
 			}
 			Color next = randomColor();
 			while( invalid1 == next || invalid2 == next )
@@ -108,7 +115,7 @@ public:
 				next = randomColor();
 			}
 
-			this[i] = next;
+			this[i] = new shared Tile( next );
 		}
 	}
 
@@ -117,4 +124,23 @@ public:
 		// Totally random
 		return Color.Blue;
 	}
+}
+
+shared class Tile : GameObject
+{
+public:
+	Color color;
+
+	this( Color c )
+	{
+		color = c;
+	}
+
+	this()
+	{
+		color = Color.Empty;
+	}
+
+private:
+	Grid container;
 }
