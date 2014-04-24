@@ -11,7 +11,6 @@ public enum Color
 	Green,
 	Purple,
 	Blue,
-	White,
 	Black
 }
 

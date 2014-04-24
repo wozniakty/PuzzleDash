@@ -1,8 +1,8 @@
 ---
-Name: Ball
-Mesh: Ball
-Material: default
+Name: Tile
+Mesh: tileyer
+Material: purple
 Transform:
     Position: !Vector3 0 0 -20
-    Scale: !Vector3 40 40 40
-    Rotation: !Vector3 -90 0 0
+    Scale: !Vector3 2 2 2
+    Rotation: !Vector3 90 0 0

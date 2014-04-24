@@ -10,12 +10,7 @@
 		"dash": "~master" 
 	},
 	"sourcePaths": [ 
-		"Scripts/",
-		"Config/", 
-		"Materials/",
-		"Objects/",
-		"Prefabs/",
-		"UI/",
+		"Scripts/"
 	],
 	"importPaths": [ "Scripts/" ],
 	"targetType": "executable",
