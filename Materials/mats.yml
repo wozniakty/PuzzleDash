@@ -1,40 +1,35 @@
 ---
 Name: background
 Diffuse: fractal
-Normal: flat_n
-Specular: flat_s
 ---
 Name: default
 Diffuse: bluePoop
-Normal: flat_n
 Specular: full_s
 ---
 Name: blue
 Diffuse: blue_d
-Normal: flat_n
 Specular: full_s
 ---
 Name: red
 Diffuse: red_d
-Normal: flat_n
 Specular: full_s
 ---
 Name: yellow
 Diffuse: yellow_d
-Normal: flat_n
 Specular: full_s
 ---
 Name: green
 Diffuse: green_d
-Normal: flat_n
 Specular: full_s
 ---
 Name: purple
 Diffuse: purple_d
-Normal: flat_n
 Specular: full_s
 ---
 Name: black
 Diffuse: black_d
-Normal: flat_n
+Specular: full_s
+---
+Name: orange
+Diffuse: orange_d
 Specular: full_s

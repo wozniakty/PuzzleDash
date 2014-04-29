@@ -16,7 +16,7 @@ public enum Color
 
 public enum TILE_SIZE = 64;
 
-shared final class Grid : GameObject
+shared final class Grid
 {
 private:
 
@@ -125,7 +125,7 @@ public:
 	}
 }
 
-shared class Tile : GameObject
+shared class Tile
 {
 public:
 	Color color;

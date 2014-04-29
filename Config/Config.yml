@@ -1,5 +1,10 @@
-Game:
-    Verbosity: !Verbosity High
+Logging:
+    Debug:
+        OutputVerbosity: !Verbosity Debug
+        LoggingVerbosity: !Verbosity Debug
+    Release:
+        OutputVerbosity: !Verbosity Medium
+        OutputVerbosity: !Verbosity Medium
 Display:
     Fullscreen: false
     Height: 720

@@ -22,10 +22,6 @@ shared class Game : DGame
         activeScene.loadObjects( "" );
         activeScene.camera = activeScene[ "TestCamera" ].camera;
 
-        uint w, h;
-        w = Config.get!uint( "Display.Width" );
-        h = Config.get!uint( "Display.Height" );
-
         //activeScene.addChild( Prefabs["Ball"].createInstance() );
 
         //scheduleTimedTask( { logInfo( "Executing: ", Time.totalTime ); }, 250.msecs );
