@@ -1,8 +1,56 @@
 ---
-Name: Tile
+Name: RedTile
+Behaviors:
+    - Class: grid.Tile
+      Fields:
+        Color: Red
 Mesh: tileyer
-Material: purple
-Transform:
-    Position: !Vector3 0 0 -20
-    Scale: !Vector3 2 2 2
-    Rotation: !Vector3 90 0 0
+Material: Red
+---
+Name: OrangeTile
+Behaviors:
+    - Class: grid.Tile
+      Fields:
+        Color: Orange
+Mesh: tileyer
+Material: Orange
+---
+Name: YellowTile
+Behaviors:
+    - Class: grid.Tile
+      Fields:
+        Color: Yellow
+Mesh: tileyer
+Material: Yellow
+---
+Name: GreenTile
+Behaviors:
+    - Class: grid.Tile
+      Fields:
+        Color: Green
+Mesh: tileyer
+Material: Green
+---
+Name: BlueTile
+Behaviors:
+    - Class: grid.Tile
+      Fields:
+        Color: Blue
+Mesh: tileyer
+Material: Blue
+---
+Name: PurpleTile
+Behaviors:
+    - Class: grid.Tile
+      Fields:
+        Color: Purple
+Mesh: tileyer
+Material: Purple
+---
+Name: BlackTile
+Behaviors:
+    - Class: grid.Tile
+      Fields:
+        Color: Black
+Mesh: tileyer
+Material: Black

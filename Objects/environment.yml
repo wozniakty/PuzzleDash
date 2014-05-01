@@ -11,6 +11,3 @@ Name: DirLight
 Light: !Light-Directional
     Color: !Vector3 1 1 1
     Direction: !Vector3 -.3 -.7 -1
----
-Name: Tile
-InstanceOf: Tile

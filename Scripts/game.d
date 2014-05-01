@@ -1,28 +1,24 @@
 module game;
-import core;
-import graphics.graphics;
-import components.camera, components.userinterface;
-import utility;
+import grid;
+import core, graphics, components, utility;
+import gl3n.linalg, gl3n.math;
 
-import gl3n.linalg;
-
-shared class Game : DGame
+class Game : DGame
 {
     Camera cam;
     
     override void onInitialize()
     {
+
         logInfo( "Initializing TestGame..." );
 
         Input.addKeyDownEvent( Keyboard.Escape, ( uint kc ) { currentState = EngineState.Quit; } );
         Input.addKeyDownEvent( Keyboard.F5, ( uint kc ) { currentState = EngineState.Reset; } );
         Input.addKeyDownEvent( Keyboard.MouseLeft, ( kc ) { if( auto obj = Input.mouseObject ) logInfo( "Clicked on ", obj.name ); } );
 
-        activeScene = new shared Scene;
+        activeScene = new Scene;
         activeScene.loadObjects( "" );
         activeScene.camera = activeScene[ "TestCamera" ].camera;
-
-        //activeScene.addChild( Prefabs["Ball"].createInstance() );
 
         //scheduleTimedTask( { logInfo( "Executing: ", Time.totalTime ); }, 250.msecs );
     }

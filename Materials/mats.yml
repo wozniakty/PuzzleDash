@@ -6,30 +6,30 @@ Name: default
 Diffuse: bluePoop
 Specular: full_s
 ---
-Name: blue
+Name: Blue
 Diffuse: blue_d
 Specular: full_s
 ---
-Name: red
+Name: Red
 Diffuse: red_d
 Specular: full_s
 ---
-Name: yellow
+Name: Yellow
 Diffuse: yellow_d
 Specular: full_s
 ---
-Name: green
+Name: Green
 Diffuse: green_d
 Specular: full_s
 ---
-Name: purple
+Name: Purple
 Diffuse: purple_d
 Specular: full_s
 ---
-Name: black
+Name: Black
 Diffuse: black_d
 Specular: full_s
 ---
-Name: orange
+Name: Orange
 Diffuse: orange_d
 Specular: full_s

@@ -2,21 +2,23 @@ module grid;
 
 import core, components, utility;
 import gl3n.linalg;
+import std.conv;
 
 public enum Color
 {
 	Empty,
 	Red,
+	Orange,
 	Yellow,
 	Green,
-	Purple,
 	Blue,
-	Black
+	Purple,
+	Black,
 }
 
 public enum TILE_SIZE = 64;
 
-shared final class Grid
+final class Grid : Behavior!()
 {
 private:
 
@@ -33,8 +35,8 @@ public:
 		this.x = x;
 		this.y = y;
 
-		state = new shared Tile[size];
-		selection = shared vec2i( -1, -1 );
+		state = new Tile[size];
+		selection = vec2i( -1, -1 );
 	}
 
 
@@ -43,25 +45,25 @@ public:
 		return rows * cols; 
 	}
 
-	shared(Tile) opIndex( int n )
+	Tile opIndex( int n )
 	{
 		if( n < 0 || n > size - 1 )
-			return new shared Tile;
+			return new Tile;
 		return state[n];
 	}
 
-	shared(Tile) opIndex( int row, int col )
+	Tile opIndex( int row, int col )
 	{
 		return state[rcToN( row, col )];
 	}
 
-	void opIndexAssign( shared Tile t, int n )
+	void opIndexAssign( Tile t, int n )
 	{
 		if( n >= 0 && n > size )
 			state[n] = t;
 	}
 
-	void opIndexAssign( shared Tile t, int row, int col )
+	void opIndexAssign( Tile t, int row, int col )
 	{
 		this[ rcToN( row, col ) ] = t;
 	}
@@ -71,9 +73,9 @@ public:
 		return( row * cols ) + col;
 	}
 
-	shared(vec2i) nToRc( int n )
+	vec2i nToRc( int n )
 	{
-		return shared vec2i( n / cols, n % cols );
+		return vec2i( n / cols, n % cols );
 	}
 
 	public void select( int row, int col )
@@ -114,7 +116,39 @@ public:
 				next = randomColor();
 			}
 
-			this[i] = new shared Tile( next );
+			this[i] = createTile( next );
+		}
+	}
+
+	public Tile createTile( Color c )
+	{
+		Tile fromName( string name )
+		{
+			auto obj = Prefabs[name].createInstance;
+			owner.addChild(obj);
+			return obj.behaviors.get!Tile;
+		}
+
+		final switch ( c ) with ( Color )
+		{
+			case Red:
+				return fromName("RedTile");
+			case Orange:
+				return fromName("OrangeTile");
+			case Yellow:
+				return fromName("YellowTile");
+			case Green:
+				return fromName("GreenTile");
+			case Blue:
+				return fromName("BlueTile");
+			case Purple:
+				return fromName("PurpleTile");
+			case Black:
+				return fromName("BlackTile");
+			case Empty:
+				auto t = fromName("RedTile");
+				t.changeColor( Empty );
+				return t;
 		}
 	}
 
@@ -125,19 +159,37 @@ public:
 	}
 }
 
-shared class Tile
+class TileFields
+{
+	string Color;
+}
+
+class Tile : Behavior!TileFields
 {
 public:
 	Color color;
 
-	this( Color c )
+	override void onInitialize()
 	{
-		color = c;
+		color = to!Color(initArgs.Color);
 	}
 
 	this()
 	{
 		color = Color.Empty;
+		owner.stateFlags.drawMesh = false;
+	}
+
+	void changeColor( Color c )
+	{
+		if( c != Color.Empty )
+		{
+			owner.material = Assets.get!Material( to!string(c) );
+			color = c;
+			owner.stateFlags.drawMesh = true;
+		}
+		else
+			owner.stateFlags.drawMesh = false;
 	}
 
 private:
