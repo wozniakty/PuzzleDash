@@ -1,8 +1,8 @@
 module grid;
 
 import core, components, utility;
-import gl3n.linalg;
-import std.conv;
+import gl3n.linalg, gl3n.math;
+import std.conv, std.random;
 
 public enum Color
 {
@@ -16,27 +16,40 @@ public enum Color
 	Black,
 }
 
-public enum TILE_SIZE = 64;
+public enum TILE_SIZE = 4.5;
 
-final class Grid : Behavior!()
+class GridArgs
+{
+	int Rows;
+	int Cols;
+}
+
+final class Grid : Behavior!GridArgs
 {
 private:
 
-	int rows, cols, x, y;
+	int rows, cols;
 	Tile[] state;
 	vec2i selection;
 
 public:
 
-	this( int r, int c, int x, int y )
+	override void onInitialize()
 	{
-		rows = r;
-		cols = c;
-		this.x = x;
-		this.y = y;
+		rows = initArgs.Rows;
+		cols = initArgs.Cols;
 
 		state = new Tile[size];
 		selection = vec2i( -1, -1 );
+		regenerate();
+
+		Input.addKeyDownEvent( Keyboard.Space, ( uint kc ) { logDebug("GridPos: ", owner.transform.position); } );
+	}
+
+	this()
+	{
+		rows = 1;
+		cols = 1;
 	}
 
 
@@ -59,7 +72,7 @@ public:
 
 	void opIndexAssign( Tile t, int n )
 	{
-		if( n >= 0 && n > size )
+		if( n >= 0 && n < size - 1 )
 			state[n] = t;
 	}
 
@@ -78,24 +91,24 @@ public:
 		return vec2i( n / cols, n % cols );
 	}
 
-	public void select( int row, int col )
+	void select( int row, int col )
 	{
 		selection.x = row;
 		selection.y = col;
 	}
 
-	public bool hasSelection()
+	bool hasSelection()
 	{
 		return selection.x >= 0 && selection.x < rows && selection.y >= 0 && selection.y < cols;
 	}
 
-	public void deselect()
+	void deselect()
 	{
 		selection.x = -1;
 		selection.y = -1;
 	}
 
-	public void regenerate()
+	void regenerate()
 	{
 		for( int i = 0; i < size; i++ )
 		{
@@ -116,46 +129,50 @@ public:
 				next = randomColor();
 			}
 
-			this[i] = createTile( next );
+			auto pos = nToRc(i);
+			auto t = createTile( next );
+			t.index = i;
+			t.owner.transform.position.x = pos.x * TILE_SIZE;
+			t.owner.transform.position.z = pos.y * TILE_SIZE;
+			this[i] = t;
 		}
 	}
 
-	public Tile createTile( Color c )
+	Tile createTile( Color c )
 	{
-		Tile fromName( string name )
-		{
-			auto obj = Prefabs[name].createInstance;
-			owner.addChild(obj);
-			return obj.behaviors.get!Tile;
-		}
-
-		final switch ( c ) with ( Color )
-		{
-			case Red:
-				return fromName("RedTile");
-			case Orange:
-				return fromName("OrangeTile");
-			case Yellow:
-				return fromName("YellowTile");
-			case Green:
-				return fromName("GreenTile");
-			case Blue:
-				return fromName("BlueTile");
-			case Purple:
-				return fromName("PurpleTile");
-			case Black:
-				return fromName("BlackTile");
-			case Empty:
-				auto t = fromName("RedTile");
-				t.changeColor( Empty );
-				return t;
-		}
+		auto obj = Prefabs[to!string(c) ~ "Tile"].createInstance;
+		owner.addChild(obj);
+		return obj.behaviors.get!Tile;
 	}
 
-	public Color randomColor()
+	Color randomColor()
 	{	
-		// Totally random
-		return Color.Blue;
+		auto i = uniform( 1, 8 );
+		return cast(Color)i;
+	}
+
+	override void onUpdate()
+	{
+		if( Input.getState("Up") )
+		{
+			logDebug( Time.deltaTime );
+			owner.transform.position.y += 10 * Time.deltaTime;
+		}
+		if( Input.getState("Down") )
+		{
+			logDebug( Time.deltaTime );
+			owner.transform.position.y -= 10 * Time.deltaTime;
+		}
+		if( Input.getState("Left") )
+		{
+			logDebug( Time.deltaTime );
+			owner.transform.position.x -= 10 * Time.deltaTime;
+		}
+		if( Input.getState("Right") )
+		{
+			logDebug( Time.deltaTime );
+			owner.transform.position.x += 10 * Time.deltaTime;
+		}
 	}
 }
 
@@ -168,16 +185,16 @@ class Tile : Behavior!TileFields
 {
 public:
 	Color color;
+	uint index;
 
 	override void onInitialize()
 	{
-		color = to!Color(initArgs.Color);
+		changeColor( to!Color(initArgs.Color) );
 	}
 
 	this()
 	{
 		color = Color.Empty;
-		owner.stateFlags.drawMesh = false;
 	}
 
 	void changeColor( Color c )
@@ -191,7 +208,4 @@ public:
 		else
 			owner.stateFlags.drawMesh = false;
 	}
-
-private:
-	Grid container;
 }

@@ -1,11 +1,17 @@
 ---
+Name: EmptyTile
+Behaviors:
+    - Class: grid.Tile
+      Fields:
+        Color: Empty
+Mesh: tileyer
+---
 Name: RedTile
 Behaviors:
     - Class: grid.Tile
       Fields:
         Color: Red
 Mesh: tileyer
-Material: Red
 ---
 Name: OrangeTile
 Behaviors:
@@ -13,7 +19,6 @@ Behaviors:
       Fields:
         Color: Orange
 Mesh: tileyer
-Material: Orange
 ---
 Name: YellowTile
 Behaviors:
@@ -21,7 +26,6 @@ Behaviors:
       Fields:
         Color: Yellow
 Mesh: tileyer
-Material: Yellow
 ---
 Name: GreenTile
 Behaviors:
@@ -29,7 +33,6 @@ Behaviors:
       Fields:
         Color: Green
 Mesh: tileyer
-Material: Green
 ---
 Name: BlueTile
 Behaviors:
@@ -37,7 +40,6 @@ Behaviors:
       Fields:
         Color: Blue
 Mesh: tileyer
-Material: Blue
 ---
 Name: PurpleTile
 Behaviors:
@@ -45,7 +47,6 @@ Behaviors:
       Fields:
         Color: Purple
 Mesh: tileyer
-Material: Purple
 ---
 Name: BlackTile
 Behaviors:
@@ -53,4 +54,3 @@ Behaviors:
       Fields:
         Color: Black
 Mesh: tileyer
-Material: Black

@@ -1,4 +1,14 @@
 ---
+Name: Grid
+Behaviors:
+    - Class: grid.Grid
+      Fields:
+        Rows: 8
+        Cols: 8
+Transform:
+    Position: !Vector3 -15.75 15.66 -50
+    Rotation: !Vector3 90 0 0
+---
 Name: Background
 Mesh: unitsquare
 Material: background

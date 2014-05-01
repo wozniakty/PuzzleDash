@@ -1,6 +1,10 @@
-Forward:
-    - !Keyboard W
-Backward:
-    - !Keyboard S
-Jump:
+Up:
+    - !Keyboard Up
+Right:
+    - !Keyboard Right
+Down:
+    - !Keyboard Down
+Left:
+    - !Keyboard Left
+Space:
     - !Keyboard Space
