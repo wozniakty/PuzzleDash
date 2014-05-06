@@ -1,10 +1,10 @@
 Up:
-    - !Keyboard Up
+    Keyboard: Up
 Right:
-    - !Keyboard Right
+    Keyboard: Right
 Down:
-    - !Keyboard Down
+    Keyboard: Down
 Left:
-    - !Keyboard Left
+    Keyboard: Left
 Space:
-    - !Keyboard Space
+    Keyboard: Space

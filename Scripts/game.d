@@ -12,7 +12,7 @@ class Game : DGame
 
         logInfo( "Initializing TestGame..." );
 
-        Input.addKeyDownEvent( Keyboard.Escape, ( uint kc ) { currentState = EngineState.Quit; } );
+        Input.addKeyDownEvent( Keyboard.Delete, ( uint kc ) { currentState = EngineState.Quit; } );
         Input.addKeyDownEvent( Keyboard.F5, ( uint kc ) { currentState = EngineState.Reset; } );
         Input.addKeyDownEvent( Keyboard.MouseLeft, ( kc ) { if( auto obj = Input.mouseObject ) logInfo( "Clicked on ", obj.name ); } );
 
@@ -21,6 +21,13 @@ class Game : DGame
         activeScene.camera = activeScene[ "TestCamera" ].camera;
 
         //scheduleTimedTask( { logInfo( "Executing: ", Time.totalTime ); }, 250.msecs );
+		int[][int] thingy;
+		thingy[3] = [ 1, 2, 3 ];
+		logDebug( thingy );
+		thingy[3] ~= 7;
+		thingy[3][1] = 4;
+		logDebug( thingy );
+		logDebug( thingy[3] );
     }
 
     override void onUpdate()

@@ -7,12 +7,13 @@
 		"Tyler Wozniak"
 	],
 	"dependencies": {
-		"dash": "~master" 
+		"dash": "==0.8.0" 
 	},
 	"sourcePaths": [ 
 		"Scripts/"
 	],
 	"importPaths": [ "Scripts/" ],
+	"workingDirectory": "Binaries/",
 	"targetType": "executable",
 	"targetPath": "Binaries",
 	"lflags-linux" : [ "./libawesomium-1.6.5.so" ],

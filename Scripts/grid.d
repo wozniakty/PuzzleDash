@@ -43,7 +43,7 @@ public:
 		selection = vec2i( -1, -1 );
 		regenerate();
 
-		Input.addKeyDownEvent( Keyboard.Space, ( uint kc ) { logDebug("GridPos: ", owner.transform.position); } );
+		debug { Input.addKeyDownEvent( Keyboard.Space, ( uint kc ) { logDebug("GridPos: ", owner.transform.position); } ); }
 	}
 
 	this()
@@ -108,6 +108,11 @@ public:
 		selection.y = -1;
 	}
 
+	void updateSelection( vec2i s )
+	{
+		selection = s;
+	}
+
 	void regenerate()
 	{
 		for( int i = 0; i < size; i++ )
@@ -138,11 +143,130 @@ public:
 		}
 	}
 
+	int[] getSwaps( int n )
+	{
+		return [ (n / cols == 0)? -1 : n - cols,
+			( n % cols == cols - 1 )? -1 : n + 1,
+			(n / cols == rows - 1)? -1 : n + cols,
+			(n % cols == 0)? -1 : n - 1 ];
+	}
+
+	int[] getSwaps( int row, int col )
+	{
+		return getSwaps( rcToN( row, col ) );
+	}
+
 	Tile createTile( Color c )
 	{
 		auto obj = Prefabs[to!string(c) ~ "Tile"].createInstance;
 		owner.addChild(obj);
 		return obj.behaviors.get!Tile;
+	}
+
+	void swap( int n1, int n2 )
+	{
+		auto t1 = this[n1];
+		auto t2 = this[n2];
+		auto p1 = t1.owner.transform.position;
+		t1.owner.transform.position = t2.owner.transform.position;
+		t2.owner.transform.position = p1;
+
+		this[n2] = t1;
+		this[n1] = t2;
+	}
+
+	void emptyTiles(int[] indeces)
+	{
+		foreach( i; indeces )
+		{
+			this[i].changeColor( Color.Empty );
+		}
+	}
+
+	int[][] findMatches()
+	{
+		//Reference to the current match at each tile
+		int[][int] matchSet;
+		// List of all discrete unconnected matches
+		int[][] matches;
+
+		// First deal with horizontal matches
+		for( int i = 0; i < size; i++ )
+		{
+			auto hor = findMatchHorizontal( i );
+			if( hor.length > 0 )
+			{
+				int[] match;
+				foreach( index; hor )
+				{
+					match ~= index;
+					matchSet[index] = match;
+				}
+			}
+		}
+
+		return matches;
+	}
+
+	int[] findMatchHorizontal( int n )
+	{
+		int length = 0;
+		if( this[n].color != Color.Empty )
+		{
+			length = 1;
+			for( int i = n + 1; i < cols; i++ )
+			{
+				if( this[n].color == this[i].color )
+				{
+					length++;
+				}
+				else
+					break;
+			}
+
+			//Matches need to be at least length 3
+			if( length < 3 ) 
+			{
+				length = 0;
+			}
+		}
+
+		int[] match = new int[length];
+		for( int i = 0; i < length; i++ )
+		{
+			match[i] = n + i;
+		}
+		return match;
+	}
+
+	int[] findMatchVertical( int n )
+	{
+		int length = 0;
+		if( this[n].color != Color.Empty )
+		{
+			length = 1;
+			for( int i = n + 1; i < rows; i++ )
+			{
+				if( this[n].color == this[cols * i].color )
+				{
+					length++;
+				}
+				else
+					break;
+			}
+
+			if( length < 3 ) 
+			{
+				length = 0;
+			}
+		}
+
+		int[] match = new int[length];
+		for( int i = 0; i < length; i++ )
+		{
+			match[i] = n + cols*i;
+		}
+		return match;
 	}
 
 	Color randomColor()
@@ -153,25 +277,28 @@ public:
 
 	override void onUpdate()
 	{
-		if( Input.getState("Up") )
+		debug
 		{
-			logDebug( Time.deltaTime );
-			owner.transform.position.y += 10 * Time.deltaTime;
-		}
-		if( Input.getState("Down") )
-		{
-			logDebug( Time.deltaTime );
-			owner.transform.position.y -= 10 * Time.deltaTime;
-		}
-		if( Input.getState("Left") )
-		{
-			logDebug( Time.deltaTime );
-			owner.transform.position.x -= 10 * Time.deltaTime;
-		}
-		if( Input.getState("Right") )
-		{
-			logDebug( Time.deltaTime );
-			owner.transform.position.x += 10 * Time.deltaTime;
+			if( Input.getState("Up") )
+			{
+				logDebug( Time.deltaTime );
+				owner.transform.position.y += 10 * Time.deltaTime;
+			}
+			if( Input.getState("Down") )
+			{
+				logDebug( Time.deltaTime );
+				owner.transform.position.y -= 10 * Time.deltaTime;
+			}
+			if( Input.getState("Left") )
+			{
+				logDebug( Time.deltaTime );
+				owner.transform.position.x -= 10 * Time.deltaTime;
+			}
+			if( Input.getState("Right") )
+			{
+				logDebug( Time.deltaTime );
+				owner.transform.position.x += 10 * Time.deltaTime;
+			}
 		}
 	}
 }
