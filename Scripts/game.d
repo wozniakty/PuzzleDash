@@ -21,13 +21,6 @@ class Game : DGame
         activeScene.camera = activeScene[ "TestCamera" ].camera;
 
         //scheduleTimedTask( { logInfo( "Executing: ", Time.totalTime ); }, 250.msecs );
-		int[][int] thingy;
-		thingy[3] = [ 1, 2, 3 ];
-		logDebug( thingy );
-		thingy[3] ~= 7;
-		thingy[3][1] = 4;
-		logDebug( thingy );
-		logDebug( thingy[3] );
     }
 
     override void onUpdate()

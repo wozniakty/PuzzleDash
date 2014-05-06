@@ -7,7 +7,7 @@
 		"Tyler Wozniak"
 	],
 	"dependencies": {
-		"dash": "==0.8.0" 
+		"dash": "==0.8.1" 
 	},
 	"sourcePaths": [ 
 		"Scripts/"
