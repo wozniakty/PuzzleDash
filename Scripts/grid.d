@@ -2,7 +2,7 @@ module grid;
 
 import core, components, utility;
 import gl3n.linalg, gl3n.math;
-import std.conv, std.random;
+import std.conv, std.random, std.algorithm;
 
 public enum Color
 {
@@ -44,6 +44,7 @@ public:
         regenerate();
 
         debug { Input.addKeyDownEvent( Keyboard.Space, ( uint kc ) { logDebug("GridPos: ", owner.transform.position); } ); }
+        Input.addKeyDownEvent( Keyboard.MouseLeft, &mouseDown );
     }
 
     this()
@@ -156,13 +157,6 @@ public:
         return getSwaps( rcToN( row, col ) );
     }
 
-    Tile createTile( Color c )
-    {
-        auto obj = Prefabs[to!string(c) ~ "Tile"].createInstance;
-        owner.addChild(obj);
-        return obj.behaviors.get!Tile;
-    }
-
     void swap( int n1, int n2 )
     {
         auto t1 = this[n1];
@@ -170,6 +164,8 @@ public:
         auto p1 = t1.owner.transform.position;
         t1.owner.transform.position = t2.owner.transform.position;
         t2.owner.transform.position = p1;
+        t1.index = n2;
+        t2.index = n1;
 
         this[n2] = t1;
         this[n1] = t2;
@@ -235,13 +231,52 @@ public:
                     auto match = collisions[0];
                     foreach( index; ver )
                     {
-                        if( !( index in match ) )
+                        if( match.countUntil( index ) >= 0 )
                         {
+                            match ~= index;
+                            matchSet[index] = match;
                         }
                     }
                 }
-            }
+                else if( collisions.length > 1 )
+                {
+                    int[] match;
+                    foreach( col; collisions )
+                    {
+                        foreach( index; col )
+                        {
+                            //TODO: This may cause a bug in D. We'll find out later
+                            matchSet[index] = match;
+                        }
+                        match ~= col;
+                        matches.remove( collisions.countUntil( col ) );
+                    }
 
+                    foreach( index; ver )
+                    {
+                        if( match.countUntil( index ) >= 0 )
+                        {
+                            match ~= index;
+                            matchSet[index] = match;
+                        }
+                    }
+                }
+                else
+                {
+                    //If no collision, just create the match and add it to the list
+                    int[] match;
+                    foreach( index; ver )
+                    {
+                        match ~= index;
+                        matchSet[index] = match;
+                    }
+
+                    matches ~= match;
+                }
+
+                //And finally, move our index along by the length
+                j += ver.length;
+            }
         }
 
         return matches;
@@ -308,10 +343,128 @@ public:
         return match;
     }
 
+    void refillBoard( int lowestEmp = -1 )
+    {
+        //Store the lowest empty tile, which will help us optimize at the end
+        if( lowestEmp < 0 )
+            lowestEmp = dropEmpties();
+
+        int[] spot = new int[cols];
+        spot[] = 0;
+        int y = lowestEmp / cols;
+        for( int i = lowestEmp; i >= 0; i-- )
+        {
+            if( this[i].color == Color.Empty )
+            {
+                auto t = createTile( randomColor() );
+                this[i] = t;
+                t.owner.transform.position.x = ( i % cols ) * TILE_SIZE;
+                t.owner.transform.position.y = spot[ i % cols ] * TILE_SIZE;
+                spot[ i % cols ]--;
+            }
+
+            if( i % cols == 0 ) y--;
+        }
+    }
+
+    int dropEmpties()
+    {
+        int lowestEmp = 0;
+        for( int i = size - 1; i >= 0; i-- )
+        {
+            //Do a check to make sure we aren't at the top of the column
+            bool top = false;
+            while( this[i].color == Color.Empty && !top )
+            {
+                top = true;
+                int cur = i;
+                int above = cur - cols;
+                while( above > 0 - cols )
+                {
+                    if( this[above].color != Color.Empty )
+                    {
+                        top = false;
+                        break;
+                    }
+                    else
+                    {
+                        above -= cols;
+                    }
+                }
+
+                if( top )
+                {
+                    if( i > lowestEmp )
+                        lowestEmp = i;
+                    break;
+                }
+                else
+                {
+                    while( this[above].color != Color.Empty )
+                    {
+                        swap( cur, above );
+                        cur -= cols;
+                        above -= cols;
+                    }
+                }
+            }
+        }
+
+        return lowestEmp;
+    }
+
+    bool deadlocked()
+    {
+       for (int i = 0; i < rows; i++)
+            {
+                for (int j = 0; j < cols; j++)
+                {
+                    if (this[i, j].color == this[i, j + 2].color &&
+                        (this[i, j].color == this[i - 1, j + 1].color ||
+                        this[i, j].color == this[i + 1, j + 1].color))
+                            return false;
+                    if (this[i, j].color == this[i + 2, j].color &&
+                        (this[i,j].color == this[i + 1,j-1].color ||
+                        this[i,j].color == this[i+1,j+1].color))
+                            return false;
+                    if (this[i, j].color == this[i, j + 1].color &&
+                        (this[i, j].color == this[i - 1, j - 1].color ||
+                        this[i, j].color == this[i, j - 2].color ||
+                        this[i, j].color == this[i + 1, j - 1].color ||
+                        this[i, j].color == this[i + 1, j + 2].color ||
+                        this[i, j].color == this[i, j + 3].color ||
+                        this[i, j].color == this[i - 1, j + 2].color))
+                            return false;
+                    if(this[i,j].color == this[i+1,j].color &&
+                        (this[i,j].color == this[i-2,j].color ||
+                        this[i,j].color == this[i-1,j-1].color ||
+                        this[i,j].color == this[i+2,j-1].color ||
+                        this[i,j].color == this[i+3,j].color ||
+                        this[i,j].color == this[i+2,j+1].color ||
+                        this[i,j].color == this[i-1,j+1].color))
+                            return false;
+                }
+            }
+
+            return true;
+    }
+ 
+    Tile createTile( Color c )
+    {
+        auto obj = Prefabs[to!string(c) ~ "Tile"].createInstance;
+        owner.addChild(obj);
+        return obj.behaviors.get!Tile;
+    }
+
     Color randomColor()
     {   
         auto i = uniform( 1, 8 );
         return cast(Color)i;
+    }
+
+    void mouseDown( uint keyCode )
+    {
+        auto selected = 
     }
 
     override void onUpdate()

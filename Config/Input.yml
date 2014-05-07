@@ -8,3 +8,5 @@ Left:
     Keyboard: Left
 Space:
     Keyboard: Space
+Select:
+    Keyboard: MouseLeft
