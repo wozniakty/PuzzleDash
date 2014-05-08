@@ -30,7 +30,7 @@ private:
 
     int rows, cols;
     Tile[] state;
-    vec2i selection;
+    int selection;
 
 public:
 
@@ -40,7 +40,7 @@ public:
         cols = initArgs.Cols;
 
         state = new Tile[size];
-        selection = vec2i( -1, -1 );
+        selection = -1;
         regenerate();
 
         debug { Input.addKeyDownEvent( Keyboard.Space, ( uint kc ) { logDebug("GridPos: ", owner.transform.position); } ); }
@@ -94,24 +94,22 @@ public:
 
     void select( int row, int col )
     {
-        selection.x = row;
-        selection.y = col;
+        select( rcToN( row, col ) );
     }
 
     bool hasSelection()
     {
-        return selection.x >= 0 && selection.x < rows && selection.y >= 0 && selection.y < cols;
+        return selection > -1 && selection < size;
     }
 
     void deselect()
     {
-        selection.x = -1;
-        selection.y = -1;
+        selection = -1;
     }
 
-    void updateSelection( vec2i s )
+    void select( int n )
     {
-        selection = s;
+        selection = n;
     }
 
     void regenerate()
@@ -464,7 +462,13 @@ public:
 
     void mouseDown( uint keyCode )
     {
-        auto selected = 
+        auto obj = Input.mouseObject;
+		auto selectedTile = obj.behaviors.get!Tile;
+		if( selectedTile )
+		{
+			
+		}
+
     }
 
     override void onUpdate()
