@@ -1,7 +1,7 @@
 module grid;
 
 import core, components, utility;
-import gl3n.linalg, gl3n.math;
+import gl3n.linalg, gl3n.math, gl3n.interpolate;
 import std.conv, std.random, std.algorithm;
 
 public enum Color
@@ -24,7 +24,7 @@ public enum GameStep
 }
 
 public enum TILE_SIZE = 4.5f;
-public enum FALL_SPEED = 10.0f;
+public enum FALL_TIME = .2f;
 
 class GridArgs
 {
@@ -169,11 +169,12 @@ public:
 
     void swap( int n1, int n2 )
     {
-        logDebug( " Swapping: ", n1, " and ", n2, " OH SHIT: ", this[n1].animating, this[n2].animating );
         auto t1 = this[n1];
         auto t2 = this[n2];
-        auto p1 = t1.owner.transform.position;
-        t1.moveTo( t2.owner.transform.position );
+        auto p1 = t1.position;
+        auto p2 = t2.position;
+        logDebug("    Swapping ", n1, " at ", p1, " and ", n2, " at ", p2 );
+        t1.moveTo( p2 );
         t2.moveTo( p1 );
         t1.index = n2;
         t2.index = n1;
@@ -192,6 +193,7 @@ public:
 
     int[][] findMatches()
     {
+        logDebug("  CHECKING MATCHES");
         //Reference to the current match at each tile
         int[][int] matchSet;
         // List of all discrete unconnected matches
@@ -355,12 +357,13 @@ public:
 
     void refillBoard( int lowestEmp = -1 )
     {
+        logDebug("  REFILLING");
         //Store the lowest empty tile, which will help us optimize at the end
         if( lowestEmp < 0 )
             lowestEmp = dropEmpties();
 
         int[] spot = new int[cols];
-        spot[] = 0;
+        spot[] = -1;
         int y = lowestEmp / cols;
         for( int i = lowestEmp; i >= 0; i-- )
         {
@@ -381,6 +384,7 @@ public:
 
     int dropEmpties()
     {
+        logDebug("  DROPPING EMPTIES");
         int lowestEmp = 0;
         for( int i = size - 1; i >= 0; i-- )
         {
@@ -600,11 +604,21 @@ class Tile : Behavior!TileFields
 {
 private:
     bool _animating;
+    vec3 start;
     vec3 target;
+    float startTime;
 public:
     Color color;
     uint index;
     mixin( Property!_animating );
+    
+    vec3 position()
+    {
+        if( animating )
+            return target;
+        else
+            return owner.transform.position;
+    }
 
     override void onInitialize()
     {
@@ -618,13 +632,28 @@ public:
 
     void moveTo( vec3 position )
     {
+        start = owner.transform.position;
         target = position;
         animating = true;
+        startTime = Time.totalTime;
     }
 
     void updatePosition()
-    {
-        auto moveVec = target - owner.transform.position;
+    {        
+        if( animating )
+        {
+            auto fallTime = FALL_TIME * max( ( distance( start, target ) / TILE_SIZE ), 1.0f  );
+            auto factor = min( ( Time.totalTime - startTime ) / fallTime, 1.0f );
+            if( factor < 1.0f )
+            {
+                owner.transform.position = lerp( start, target, factor );
+            }
+            else
+            {
+                owner.transform.position = target;
+                animating = false;
+            }
+        }
     }
 
     void changeColor( Color c )
