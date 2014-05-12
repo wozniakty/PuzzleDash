@@ -16,7 +16,15 @@ public enum Color
     Black,
 }
 
-public enum TILE_SIZE = 4.5;
+public enum GameStep
+{
+    Input,
+    CheckMatch,
+    CheckDeadlock
+}
+
+public enum TILE_SIZE = 4.5f;
+public enum FALL_SPEED = 10.0f;
 
 class GridArgs
 {
@@ -30,7 +38,10 @@ private:
 
     int rows, cols;
     Tile[] state;
-    vec2i selection;
+    int selection;
+    GameStep step;
+    vec2i previousSwap;
+    int lowestEmpty;
 
 public:
 
@@ -38,9 +49,10 @@ public:
     {
         rows = initArgs.Rows;
         cols = initArgs.Cols;
+        step = GameStep.Input;
 
         state = new Tile[size];
-        selection = vec2i( -1, -1 );
+        selection = -1;
         regenerate();
 
         debug { Input.addKeyDownEvent( Keyboard.Space, ( uint kc ) { logDebug("GridPos: ", owner.transform.position); } ); }
@@ -68,12 +80,12 @@ public:
 
     Tile opIndex( int row, int col )
     {
-        return state[rcToN( row, col )];
+        return this[rcToN( row, col )];
     }
 
     void opIndexAssign( Tile t, int n )
     {
-        if( n >= 0 && n < size - 1 )
+        if( n >= 0 && n < size )
             state[n] = t;
     }
 
@@ -94,24 +106,22 @@ public:
 
     void select( int row, int col )
     {
-        selection.x = row;
-        selection.y = col;
+        selection = rcToN( row, col );
+    }
+
+    void select( int n )
+    {
+        selection = n;
     }
 
     bool hasSelection()
     {
-        return selection.x >= 0 && selection.x < rows && selection.y >= 0 && selection.y < cols;
+        return selection > -1 && selection < size;
     }
 
     void deselect()
     {
-        selection.x = -1;
-        selection.y = -1;
-    }
-
-    void updateSelection( vec2i s )
-    {
-        selection = s;
+        selection = -1;
     }
 
     void regenerate()
@@ -138,8 +148,8 @@ public:
             auto pos = nToRc(i);
             auto t = createTile( next );
             t.index = i;
-            t.owner.transform.position.x = pos.x * TILE_SIZE;
-            t.owner.transform.position.z = pos.y * TILE_SIZE;
+            t.owner.transform.position.x = pos.y * TILE_SIZE;
+            t.owner.transform.position.z = pos.x * TILE_SIZE;
             this[i] = t;
         }
     }
@@ -159,11 +169,12 @@ public:
 
     void swap( int n1, int n2 )
     {
+        logDebug( " Swapping: ", n1, " and ", n2, " OH SHIT: ", this[n1].animating, this[n2].animating );
         auto t1 = this[n1];
         auto t2 = this[n2];
         auto p1 = t1.owner.transform.position;
-        t1.owner.transform.position = t2.owner.transform.position;
-        t2.owner.transform.position = p1;
+        t1.moveTo( t2.owner.transform.position );
+        t2.moveTo( p1 );
         t1.index = n2;
         t2.index = n1;
 
@@ -171,7 +182,7 @@ public:
         this[n1] = t2;
     }
 
-    void emptyTiles(int[] indeces)
+    void clearTiles(int[] indeces)
     {
         foreach( i; indeces )
         {
@@ -278,7 +289,6 @@ public:
                 j += ver.length;
             }
         }
-
         return matches;
     }
 
@@ -288,9 +298,9 @@ public:
         if( this[n].color != Color.Empty )
         {
             length = 1;
-            for( int i = n + 1; i < cols; i++ )
+            for( int i = 1; i < cols - ( n % cols ); i++ )
             {
-                if( this[n].color == this[i].color )
+                if( this[n].color == this[n + i].color )
                 {
                     length++;
                 }
@@ -319,9 +329,9 @@ public:
         if( this[n].color != Color.Empty )
         {
             length = 1;
-            for( int i = n + 1; i < rows; i++ )
+            for( int i = 1; i < rows - ( n / cols ); i++ )
             {
-                if( this[n].color == this[cols * i].color )
+                if( this[n].color == this[n + cols * i].color )
                 {
                     length++;
                 }
@@ -358,9 +368,11 @@ public:
             {
                 auto t = createTile( randomColor() );
                 this[i] = t;
+                t.index = i;
                 t.owner.transform.position.x = ( i % cols ) * TILE_SIZE;
-                t.owner.transform.position.y = spot[ i % cols ] * TILE_SIZE;
+                t.owner.transform.position.z = spot[ i % cols ] * TILE_SIZE;
                 spot[ i % cols ]--;
+                t.moveTo( vec3( ( i % cols ) * TILE_SIZE, 0, ( y ) * TILE_SIZE ) );
             }
 
             if( i % cols == 0 ) y--;
@@ -379,7 +391,7 @@ public:
                 top = true;
                 int cur = i;
                 int above = cur - cols;
-                while( above > 0 - cols )
+                while( above > ( 0 - cols ) )
                 {
                     if( this[above].color != Color.Empty )
                     {
@@ -462,9 +474,53 @@ public:
         return cast(Color)i;
     }
 
+    bool animating()
+    {
+        for( int i = 0; i < size; i++ )
+        {
+            if( this[i].animating )
+                return true;
+        }
+        return false;
+    }
+
     void mouseDown( uint keyCode )
     {
-        auto selected = 
+        if( !animating )
+        {
+            if( step == GameStep.Input )
+            {
+                auto selected = Input.mouseObject;
+                auto tile = selected.behaviors.get!Tile;
+                if( tile )
+                {
+                    auto index = tile.index;
+                    logDebug( "Selected ", tile.index );
+                    if( !hasSelection )
+                    {
+                        select( index );
+                    }
+                    else
+                    {
+                        auto swaps = getSwaps( selection );
+                        if( swaps.countUntil( index ) >= 0 )
+                        {
+                            swap( index, selection );
+                            previousSwap.x = index;
+                            previousSwap.y = selection;
+                            deselect();
+                            step = GameStep.CheckMatch;
+                        }
+                        else
+                        {
+                            select( index );
+                        }
+                    }
+                }
+            }
+        }
+        else
+            logDebug("Patience, I'm animating");
     }
 
     override void onUpdate()
@@ -473,24 +529,64 @@ public:
         {
             if( Input.getState("Up") )
             {
-                logDebug( Time.deltaTime );
                 owner.transform.position.y += 10 * Time.deltaTime;
             }
             if( Input.getState("Down") )
             {
-                logDebug( Time.deltaTime );
                 owner.transform.position.y -= 10 * Time.deltaTime;
             }
             if( Input.getState("Left") )
             {
-                logDebug( Time.deltaTime );
                 owner.transform.position.x -= 10 * Time.deltaTime;
             }
             if( Input.getState("Right") )
             {
-                logDebug( Time.deltaTime );
                 owner.transform.position.x += 10 * Time.deltaTime;
             }
+        }
+
+        if( !animating )
+        {
+            if( step == GameStep.CheckMatch )
+            {
+                auto matches = findMatches();
+                if( matches.length == 0 )
+                {
+                    swap( previousSwap.x, previousSwap.y );
+                    step = GameStep.Input;
+                }
+                else
+                {
+                    foreach( match; matches )
+                    {
+                        clearTiles( match );
+                    }
+                    lowestEmpty = dropEmpties();
+                    refillBoard( lowestEmpty );
+                    if( findMatches().length <= 0 )
+                    {
+                        step = GameStep.CheckDeadlock;
+                    }
+                }
+            }
+            else if( step == GameStep.CheckDeadlock )
+            {
+                if( deadlocked )
+                {
+                    logDebug( "  THATS A DEADLOCK  ");
+                    //do nothing yet
+                }
+                else
+                {
+                    step = GameStep.Input;
+                    deselect();
+                }
+            }
+        }
+
+        for( int i = 0; i < size; i++ )
+        {
+            this[i].updatePosition();
         }
     }
 }
@@ -502,9 +598,13 @@ class TileFields
 
 class Tile : Behavior!TileFields
 {
+private:
+    bool _animating;
+    vec3 target;
 public:
     Color color;
     uint index;
+    mixin( Property!_animating );
 
     override void onInitialize()
     {
@@ -516,12 +616,23 @@ public:
         color = Color.Empty;
     }
 
+    void moveTo( vec3 position )
+    {
+        target = position;
+        animating = true;
+    }
+
+    void updatePosition()
+    {
+        auto moveVec = target - owner.transform.position;
+    }
+
     void changeColor( Color c )
     {
+        color = c;
         if( c != Color.Empty )
         {
             owner.material = Assets.get!Material( to!string(c) );
-            color = c;
             owner.stateFlags.drawMesh = true;
         }
         else
