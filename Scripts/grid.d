@@ -43,6 +43,7 @@ private:
     vec2i previousSwap;
     int lowestEmpty;
     bool debugMode;
+    PointLight highlight;
 
 public:
 
@@ -55,6 +56,10 @@ public:
         state = new Tile[size];
         selection = -1;
         regenerate();
+
+        auto hl = Prefabs["Highlight"].createInstance;
+        owner.addChild(hl);
+        highlight = cast(PointLight)(hl.light);
 
         Input.addKeyDownEvent( Keyboard.MouseLeft, &mouseDown );
     }
@@ -234,9 +239,7 @@ public:
                     //Contains key index?
                     if( index in matchSet )
                     {
-                        logDebug( index, " found in matchSet: ", matchSet );
                         collisions ~= matchSet[index];
-                        logDebug( "Updated collisions: ", collisions );
                     }
                 }
 
@@ -244,17 +247,12 @@ public:
                 if( collisions.length == 1 )
                 {
                     auto match = collisions[0];
-                    logDebug( match, " : ", *match );
                     foreach( index; ver )
                     {
-                        logDebug( index );
                         if( (*match).countUntil( index ) < 0 )
                         {
-                            logDebug( "Collision at ", index );
                             (*match) ~= index;
                             matchSet[index] = match;
-                            logDebug( matchSet );
-                            logDebug( match, " : ", *match );
                         }
                     }
                 }
@@ -274,7 +272,7 @@ public:
 
                     foreach( index; ver )
                     {
-                        if( (*match).countUntil( index ) >= 0 )
+                        if( (*match).countUntil( index ) < 0 )
                         {
                             *match ~= index;
                             matchSet[index] = match;
@@ -352,10 +350,6 @@ public:
             if( length < 3 ) 
             {
                 length = 0;
-            }
-            else
-            {
-                logDebug( " VERTICAL MATCH AT: ", n );
             }
         }
 
@@ -527,7 +521,10 @@ public:
                         }
                         else
                         {
-                            select( index );
+                            if( selection == index )
+                                deselect();
+                            else
+                                select( index );
                         }
                     }
                 }
@@ -612,6 +609,18 @@ public:
         for( int i = 0; i < size; i++ )
         {
             this[i].updatePosition();
+        }
+
+        if( selection > -1 )
+        {
+            highlight.owner.stateFlags.drawLight = true;
+            auto pos = nToRc( selection );
+            highlight.owner.transform.position.x = pos.y * TILE_SIZE;
+            highlight.owner.transform.position.z = pos.x * TILE_SIZE;
+        }
+        else
+        {
+            highlight.owner.stateFlags.drawLight = false;
         }
     }
 }

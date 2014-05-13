@@ -35,13 +35,16 @@ class Game : DGame
         //logDebug( thing2 );
 
         int[] a = [ 1, 2, 3 ];
-        int[]* ap = &a;
-        int[]* ap2 = ap;
+		int[] b = a;
+		a[1] = 8;
+		logDebug( b );
+        //int[]* ap = &a;
+        //int[]* ap2 = ap;
         //logDebug( "b1: ", b );
-        a[1] = 8;
+        //a[1] = 8;
         //logDebug( *ap2 );
         //logDebug( "b2: ", b );
-        a ~= 9;
+        //a ~= 9;
         //logDebug( *ap2 );
         //logDebug( "a: ", a );
         //logDebug( "b3: ", b );
