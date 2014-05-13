@@ -10,3 +10,5 @@ Space:
     Keyboard: Space
 Select:
     Keyboard: MouseLeft
+Toggle1:
+    Keyboard: M

@@ -42,6 +42,7 @@ private:
     GameStep step;
     vec2i previousSwap;
     int lowestEmpty;
+    bool debugMode;
 
 public:
 
@@ -55,7 +56,6 @@ public:
         selection = -1;
         regenerate();
 
-        debug { Input.addKeyDownEvent( Keyboard.Space, ( uint kc ) { logDebug("GridPos: ", owner.transform.position); } ); }
         Input.addKeyDownEvent( Keyboard.MouseLeft, &mouseDown );
     }
 
@@ -63,6 +63,7 @@ public:
     {
         rows = 1;
         cols = 1;
+        debugMode = false;
     }
 
 
@@ -173,7 +174,6 @@ public:
         auto t2 = this[n2];
         auto p1 = t1.position;
         auto p2 = t2.position;
-        logDebug("    Swapping ", n1, " at ", p1, " and ", n2, " at ", p2 );
         t1.moveTo( p2 );
         t2.moveTo( p1 );
         t1.index = n2;
@@ -191,13 +191,12 @@ public:
         }
     }
 
-    int[][] findMatches()
+    int[]*[] findMatches()
     {
-        logDebug("  CHECKING MATCHES");
         //Reference to the current match at each tile
-        int[][int] matchSet;
+        int[]*[int] matchSet;
         // List of all discrete unconnected matches
-        int[][] matches;
+        int[]*[] matches;
 
         // First deal with horizontal matches
         for( int i = 0; i < size; i++ )
@@ -205,10 +204,11 @@ public:
             auto hor = findMatchHorizontal( i );
             if( hor.length > 0 )
             {
-                int[] match;
+                int[] matchr;
+                int[]* match = &matchr;
                 foreach( index; hor )
                 {
-                    match ~= index;
+                    *match ~= index;
                     matchSet[index] = match;
                 }
                 matches ~= match;
@@ -228,13 +228,15 @@ public:
             if( ver.length > 0 )
             {
                 //Let's get all the Matches that this match collides with
-                int[][] collisions;
+                int[]*[] collisions;
                 foreach( index; ver )
                 {
                     //Contains key index?
                     if( index in matchSet )
                     {
+                        logDebug( index, " found in matchSet: ", matchSet );
                         collisions ~= matchSet[index];
+                        logDebug( "Updated collisions: ", collisions );
                     }
                 }
 
@@ -242,34 +244,39 @@ public:
                 if( collisions.length == 1 )
                 {
                     auto match = collisions[0];
+                    logDebug( match, " : ", *match );
                     foreach( index; ver )
                     {
-                        if( match.countUntil( index ) >= 0 )
+                        logDebug( index );
+                        if( (*match).countUntil( index ) < 0 )
                         {
-                            match ~= index;
+                            logDebug( "Collision at ", index );
+                            (*match) ~= index;
                             matchSet[index] = match;
+                            logDebug( matchSet );
+                            logDebug( match, " : ", *match );
                         }
                     }
                 }
                 else if( collisions.length > 1 )
                 {
-                    int[] match;
+                    int[] matchr;
+                    int[]* match = &matchr;
                     foreach( col; collisions )
                     {
-                        foreach( index; col )
+                        foreach( index; *col )
                         {
-                            //TODO: This may cause a bug in D. We'll find out later
                             matchSet[index] = match;
                         }
-                        match ~= col;
-                        matches.remove( collisions.countUntil( col ) );
+                        (*match) ~= *col;
+                        matches.remove( matches.countUntil( col ) );
                     }
 
                     foreach( index; ver )
                     {
-                        if( match.countUntil( index ) >= 0 )
+                        if( (*match).countUntil( index ) >= 0 )
                         {
-                            match ~= index;
+                            *match ~= index;
                             matchSet[index] = match;
                         }
                     }
@@ -277,10 +284,11 @@ public:
                 else
                 {
                     //If no collision, just create the match and add it to the list
-                    int[] match;
+                    int[] matchr;
+                    int[]* match = &matchr;
                     foreach( index; ver )
                     {
-                        match ~= index;
+                        (*match) ~= index;
                         matchSet[index] = match;
                     }
 
@@ -345,6 +353,10 @@ public:
             {
                 length = 0;
             }
+            else
+            {
+                logDebug( " VERTICAL MATCH AT: ", n );
+            }
         }
 
         int[] match = new int[length];
@@ -357,7 +369,6 @@ public:
 
     void refillBoard( int lowestEmp = -1 )
     {
-        logDebug("  REFILLING");
         //Store the lowest empty tile, which will help us optimize at the end
         if( lowestEmp < 0 )
             lowestEmp = dropEmpties();
@@ -384,7 +395,6 @@ public:
 
     int dropEmpties()
     {
-        logDebug("  DROPPING EMPTIES");
         int lowestEmp = 0;
         for( int i = size - 1; i >= 0; i-- )
         {
@@ -499,7 +509,7 @@ public:
                 if( tile )
                 {
                     auto index = tile.index;
-                    logDebug( "Selected ", tile.index );
+
                     if( !hasSelection )
                     {
                         select( index );
@@ -531,21 +541,29 @@ public:
     {
         debug
         {
-            if( Input.getState("Up") )
+
+            if( Input.getState("Space") )
             {
-                owner.transform.position.y += 10 * Time.deltaTime;
+                debugMode = !debugMode;
             }
-            if( Input.getState("Down") )
+            if( debugMode )
             {
-                owner.transform.position.y -= 10 * Time.deltaTime;
-            }
-            if( Input.getState("Left") )
-            {
-                owner.transform.position.x -= 10 * Time.deltaTime;
-            }
-            if( Input.getState("Right") )
-            {
-                owner.transform.position.x += 10 * Time.deltaTime;
+                if( Input.getState("Up") )
+                {
+                    owner.transform.position.y += 10 * Time.deltaTime;
+                }
+                if( Input.getState("Down") )
+                {
+                    owner.transform.position.y -= 10 * Time.deltaTime;
+                }
+                if( Input.getState("Left") )
+                {
+                    owner.transform.position.x -= 10 * Time.deltaTime;
+                }
+                if( Input.getState("Right") )
+                {
+                    owner.transform.position.x += 10 * Time.deltaTime;
+                }
             }
         }
 
@@ -556,6 +574,7 @@ public:
                 auto matches = findMatches();
                 if( matches.length == 0 )
                 {
+                    if( !debugMode )
                     swap( previousSwap.x, previousSwap.y );
                     step = GameStep.Input;
                 }
@@ -563,10 +582,12 @@ public:
                 {
                     foreach( match; matches )
                     {
-                        clearTiles( match );
+                        clearTiles( *match );
                     }
+
                     lowestEmpty = dropEmpties();
                     refillBoard( lowestEmpty );
+
                     if( findMatches().length <= 0 )
                     {
                         step = GameStep.CheckDeadlock;
