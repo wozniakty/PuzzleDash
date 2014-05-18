@@ -188,37 +188,36 @@ public:
         this[n1] = t2;
     }
 
-    void clearTiles(int[] indeces)
+    void clearTiles( Match match )
     {
-        foreach( i; indeces )
+        logDebug( "Clearing tiles: ", match.indeces );
+
+        foreach( index; match.indeces )
         {
-            this[i].changeColor( Color.Empty );
+            this[index].changeColor( Color.Empty );
         }
     }
 
-    int[]*[] findMatches()
+    Match[] findMatches()
     {
         //Reference to the current match at each tile
-        int[]*[int] matchSet;
+        Match[int] matchSet;
         // List of all discrete unconnected matches
-        int[]*[] matches;
+        Match[] matches;
 
         // First deal with horizontal matches
         for( int i = 0; i < size; i++ )
         {
             auto hor = findMatchHorizontal( i );
-            if( hor.length > 0 )
+            if( hor.indeces.length > 0 )
             {
-                int[] matchr;
-                int[]* match = &matchr;
-                foreach( index; hor )
+                foreach( index; hor.indeces )
                 {
-                    *match ~= index;
-                    matchSet[index] = match;
+                    matchSet[index] = hor;
                 }
-                matches ~= match;
+                matches ~= hor;
 
-                i += hor.length;
+                i += hor.indeces.length;
             }
         }
 
@@ -230,11 +229,11 @@ public:
             int i = ( j / rows ) + ( ( j % rows ) * cols );
             auto ver = findMatchVertical( i );
 
-            if( ver.length > 0 )
+            if( ver.indeces.length > 0 )
             {
                 //Let's get all the Matches that this match collides with
-                int[]*[] collisions;
-                foreach( index; ver )
+                Match[] collisions;
+                foreach( index; ver.indeces )
                 {
                     //Contains key index?
                     if( index in matchSet )
@@ -247,34 +246,33 @@ public:
                 if( collisions.length == 1 )
                 {
                     auto match = collisions[0];
-                    foreach( index; ver )
+                    foreach( index; ver.indeces )
                     {
-                        if( (*match).countUntil( index ) < 0 )
+                        if( match.indeces.countUntil( index ) < 0 )
                         {
-                            (*match) ~= index;
+                            match.indeces ~= index;
                             matchSet[index] = match;
                         }
                     }
                 }
                 else if( collisions.length > 1 )
                 {
-                    int[] matchr;
-                    int[]* match = &matchr;
+                    auto match = new Match;
                     foreach( col; collisions )
                     {
-                        foreach( index; *col )
+                        foreach( index; col.indeces )
                         {
                             matchSet[index] = match;
                         }
-                        (*match) ~= *col;
+                        match.indeces ~= col.indeces;
                         matches.remove( matches.countUntil( col ) );
                     }
 
-                    foreach( index; ver )
+                    foreach( index; ver.indeces )
                     {
-                        if( (*match).countUntil( index ) < 0 )
+                        if( match.indeces.countUntil( index ) < 0 )
                         {
-                            *match ~= index;
+                            match.indeces ~= index;
                             matchSet[index] = match;
                         }
                     }
@@ -282,25 +280,22 @@ public:
                 else
                 {
                     //If no collision, just create the match and add it to the list
-                    int[] matchr;
-                    int[]* match = &matchr;
-                    foreach( index; ver )
+                    foreach( index; ver.indeces )
                     {
-                        (*match) ~= index;
-                        matchSet[index] = match;
+                        matchSet[index] = ver;
                     }
 
-                    matches ~= match;
+                    matches ~= ver;
                 }
 
                 //And finally, move our index along by the length
-                j += ver.length;
+                j += ver.indeces.length;
             }
         }
         return matches;
     }
 
-    int[] findMatchHorizontal( int n )
+    Match findMatchHorizontal( int n )
     {
         int length = 0;
         if( this[n].color != Color.Empty )
@@ -323,15 +318,15 @@ public:
             }
         }
 
-        int[] match = new int[length];
+        auto match = new Match;
         for( int i = 0; i < length; i++ )
         {
-            match[i] = n + i;
+            match.indeces ~= n + i;
         }
         return match;
     }
 
-    int[] findMatchVertical( int n )
+    Match findMatchVertical( int n )
     {
         int length = 0;
         if( this[n].color != Color.Empty )
@@ -353,10 +348,10 @@ public:
             }
         }
 
-        int[] match = new int[length];
+        auto match = new Match;
         for( int i = 0; i < length; i++ )
         {
-            match[i] = n + cols*i;
+            match.indeces ~= n + cols*i;
         }
         return match;
     }
@@ -375,12 +370,12 @@ public:
             if( this[i].color == Color.Empty )
             {
                 auto t = createTile( randomColor() );
-                this[i] = t;
                 t.index = i;
                 t.owner.transform.position.x = ( i % cols ) * TILE_SIZE;
                 t.owner.transform.position.z = spot[ i % cols ] * TILE_SIZE;
                 spot[ i % cols ]--;
                 t.moveTo( vec3( ( i % cols ) * TILE_SIZE, 0, ( y ) * TILE_SIZE ) );
+                this[i] = t;
             }
 
             if( i % cols == 0 ) y--;
@@ -572,14 +567,14 @@ public:
                 if( matches.length == 0 )
                 {
                     if( !debugMode )
-                    swap( previousSwap.x, previousSwap.y );
+                        swap( previousSwap.x, previousSwap.y );
                     step = GameStep.Input;
                 }
                 else
                 {
                     foreach( match; matches )
                     {
-                        clearTiles( *match );
+                        clearTiles( match );
                     }
 
                     lowestEmpty = dropEmpties();
@@ -622,6 +617,15 @@ public:
         {
             highlight.owner.stateFlags.drawLight = false;
         }
+    }
+}
+
+class Match
+{
+    int[] indeces;
+
+    this()
+    {
     }
 }
 
@@ -688,13 +692,16 @@ public:
 
     void changeColor( Color c )
     {
-        color = c;
-        if( c != Color.Empty )
+        if( owner )
         {
-            owner.material = Assets.get!Material( to!string(c) );
-            owner.stateFlags.drawMesh = true;
+            color = c;
+            if( c != Color.Empty )
+            {
+                owner.material = Assets.get!Material( to!string(c) );
+                owner.stateFlags.drawMesh = true;
+            }
+            else
+                owner.stateFlags.drawMesh = false;
         }
-        else
-            owner.stateFlags.drawMesh = false;
     }
 }
