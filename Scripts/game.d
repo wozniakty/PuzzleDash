@@ -11,7 +11,7 @@ class Game : DGame
 
         logInfo( "Initializing TestGame..." );
 
-        Input.addKeyDownEvent( Keyboard.Delete, ( uint kc ) { currentState = EngineState.Quit; } );
+        Input.addButtonDownEvent( "Exit", ( uint kc ) { currentState = EngineState.Quit; } );
 
         activeScene = new Scene;
         activeScene.loadObjects( "" );

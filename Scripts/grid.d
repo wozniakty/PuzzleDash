@@ -4,6 +4,8 @@ import core, components, utility;
 import gl3n.linalg, gl3n.math, gl3n.interpolate;
 import std.conv, std.random, std.algorithm;
 
+mixin( registerComponents!q{grid} );
+
 public enum Color
 {
     Empty,
@@ -26,17 +28,10 @@ public enum GameStep
 public enum TILE_SIZE = 4.5f;
 public enum FALL_TIME = .2f;
 
-class GridArgs
-{
-    int Rows;
-    int Cols;
-}
-
-final class Grid : Behavior!GridArgs
+@yamlComponent("Grid")
+final class Grid : Component
 {
 private:
-
-    int rows, cols;
     Tile[] state;
     int selection;
     GameStep step;
@@ -46,11 +41,14 @@ private:
     PointLight highlight;
 
 public:
+    @field( "Rows" )
+    int rows;
+    @field( "Cols" )
+    int cols;
 
-    override void onInitialize()
+    override void initialize()
     {
-        rows = initArgs.Rows;
-        cols = initArgs.Cols;
+        logDebug( rows, ",", cols );
         step = GameStep.Input;
 
         state = new Tile[size];
@@ -61,7 +59,7 @@ public:
         owner.addChild(hl);
         highlight = cast(PointLight)(hl.light);
 
-        Input.addKeyDownEvent( Keyboard.MouseLeft, &mouseDown );
+        Input.addButtonDownEvent( "Select", &mouseDown );
     }
 
     this()
@@ -468,7 +466,7 @@ public:
     {
         auto obj = Prefabs[to!string(c) ~ "Tile"].createInstance;
         owner.addChild(obj);
-        return obj.behaviors.get!Tile;
+        return obj.getComponent!Tile;
     }
 
     Color randomColor()
@@ -494,7 +492,7 @@ public:
             if( step == GameStep.Input )
             {
                 auto selected = Input.mouseObject;
-                auto tile = selected.behaviors.get!Tile;
+                auto tile = selected.getComponent!Tile;
                 if( tile )
                 {
                     auto index = tile.index;
@@ -529,7 +527,7 @@ public:
             logDebug("Patience, I'm animating");
     }
 
-    override void onUpdate()
+    override void update()
     {
         debug
         {
@@ -629,20 +627,18 @@ class Match
     }
 }
 
-class TileFields
-{
-    string Color;
-}
-
-class Tile : Behavior!TileFields
+@yamlComponent( "Tile" )
+class Tile : Component
 {
 private:
     bool _animating;
+    Color color;
     vec3 start;
     vec3 target;
     float startTime;
 public:
-    Color color;
+    @field( "Color" )
+    string initColor;
     uint index;
     mixin( Property!_animating );
     
@@ -654,9 +650,9 @@ public:
             return owner.transform.position;
     }
 
-    override void onInitialize()
+    override void initialize()
     {
-        changeColor( to!Color(initArgs.Color) );
+        changeColor( to!Color(initColor) );
     }
 
     this()

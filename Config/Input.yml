@@ -9,6 +9,8 @@ Left:
 Space:
     Keyboard: Space
 Select:
-    Keyboard: MouseLeft
+    Mouse: Left
 Toggle1:
     Keyboard: M
+Exit:
+    Keyboard: Delete

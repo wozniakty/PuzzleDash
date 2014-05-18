@@ -1,9 +1,8 @@
 ---
 Name: Highlight
 Transform:
-
     Position: !Vector3 0 3 0
-Light: !Light-Point
+PointLight:
     Color: !Vector3 1.0 1.0 1.0
     Radius: 6
     FalloffRate: .5
