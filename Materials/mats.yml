@@ -4,32 +4,32 @@ Diffuse: fractal
 ---
 Name: default
 Diffuse: bluePoop
-Specular: full_s
+Specular: half_s
 ---
 Name: Blue
 Diffuse: blue_d
-Specular: full_s
+Specular: half_s
 ---
 Name: Red
 Diffuse: red_d
-Specular: full_s
+Specular: half_s
 ---
 Name: Yellow
 Diffuse: yellow_d
-Specular: full_s
+Specular: half_s
 ---
 Name: Green
 Diffuse: green_d
-Specular: full_s
+Specular: half_s
 ---
 Name: Purple
 Diffuse: purple_d
-Specular: full_s
+Specular: half_s
 ---
 Name: Black
 Diffuse: black_d
-Specular: full_s
+Specular: half_s
 ---
 Name: Orange
 Diffuse: orange_d
-Specular: full_s
+Specular: half_s

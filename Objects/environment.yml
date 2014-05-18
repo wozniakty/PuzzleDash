@@ -18,5 +18,4 @@ Transform:
 Name: DirLight
 DirectionalLight:
     Color: !Vector3 1 1 1
-    Direction: !Vector3 -1
-     -1 -.7
+    Direction: !Vector3 0 -1 -.9
