@@ -2,6 +2,8 @@ module game;
 import grid;
 import core, graphics, components, utility;
 
+mixin ContentImport;
+
 class Game : DGame
 {
     Camera cam;
