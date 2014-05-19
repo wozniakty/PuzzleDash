@@ -1,6 +1,8 @@
 PuzzleDash
 ==========
 
+![PuzzleDash](https://raw.github.com/zeDoctor/PuzzleDash/master/Screenshots/puzzledash.png)
+
 A match-3 puzzle game built in the [Dash engine](https://github.com/Circular-Studios/Dash).
 
 ### How to run PuzzleDash on Windows
